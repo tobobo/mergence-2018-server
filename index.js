@@ -21,7 +21,7 @@ app.get('/', (req, res) => {
 });
 
 app.post('/api/actions', (req, res) => {
-  const clientId = req.body.clientId;
+  const { body: { clientId } } = req;
   initializeClientIfRequired(clientId);
   clients[clientId].actions.unshift({
     name: req.body.name,
@@ -32,7 +32,7 @@ app.post('/api/actions', (req, res) => {
 });
 
 app.get('/api/actions/:clientId', (req, res) => {
-  const clientId = req.params.clientId;
+  const { params: { clientId } } = req;
   initializeClientIfRequired(clientId);
   const clientState = clients[clientId];
   const clientActions = clientState.actions;
