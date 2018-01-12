@@ -1,10 +1,11 @@
 const express = require('express');
+
 const app = express();
 const jsonParser = require('body-parser').json;
 
 const clients = {};
 const getDefaultClientState = () => ({ lastPoll: undefined, actions: [] });
-const initializeClientIfRequired = clientId => {
+const initializeClientIfRequired = (clientId) => {
   if (!clients[clientId]) clients[clientId] = getDefaultClientState();
 };
 
@@ -25,7 +26,7 @@ app.post('/api/actions', (req, res) => {
   clients[clientId].actions.unshift({
     name: req.body.name,
     options: req.body.options,
-    time: Date.now()
+    time: Date.now(),
   });
   res.status(200).end();
 });
@@ -43,7 +44,7 @@ app.get('/api/actions/:clientId', (req, res) => {
 app.get('/api/clients', (req, res) => {
   const clientKeys = Object.keys(clients);
   const currentTime = Date.now();
-  clientKeys.forEach(key => {
+  clientKeys.forEach((key) => {
     if (currentTime - clients[key].lastPollTime > 10000) {
       delete clients[key];
     }
