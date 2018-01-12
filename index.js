@@ -2,7 +2,11 @@ const express = require('express');
 const app = express();
 const jsonParser = require('body-parser').json;
 
-const actions = {};
+const clients = {};
+const getDefaultClientState = () => ({ lastPoll: undefined, actions: [] });
+const initializeClientIfRequired = clientId => {
+  if (!clients[clientId]) clients[clientId] = getDefaultClientState();
+};
 
 app.use(jsonParser());
 app.use((req, res, next) => {
@@ -16,22 +20,35 @@ app.get('/', (req, res) => {
 });
 
 app.post('/api/actions', (req, res) => {
-  const clientId = req.body.client;
-  if (!actions[clientId]) actions[clientId] = [];
-  actions[clientId].unshift({
+  const clientId = req.body.clientId;
+  initializeClientIfRequired(clientId);
+  clients[clientId].actions.unshift({
     name: req.body.name,
     options: req.body.options,
     time: Date.now()
   });
-  console.log('actions', actions);
   res.status(200).end();
 });
 
 app.get('/api/actions/:clientId', (req, res) => {
-  const clientActions = actions[req.params.clientId] || [];
-  actions[req.params.clientId] = [];
-  console.log('ca', clientActions);
+  const clientId = req.params.clientId;
+  initializeClientIfRequired(clientId);
+  const clientState = clients[clientId];
+  const clientActions = clientState.actions;
+  clientState.actions = [];
+  clientState.lastPollTime = Date.now();
   res.json(clientActions);
+});
+
+app.get('/api/clients', (req, res) => {
+  const clientKeys = Object.keys(clients);
+  const currentTime = Date.now();
+  clientKeys.forEach(key => {
+    if (currentTime - clients[key].lastPollTime > 10000) {
+      delete clients[key];
+    }
+  });
+  res.json(Object.keys(clients));
 });
 
 app.listen(3001, () => console.log('listening'));
