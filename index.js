@@ -24,7 +24,7 @@ app.post('/api/actions', (req, res) => {
   const { body: { clientId } } = req;
   initializeClientIfRequired(clientId);
   clients[clientId].actions.unshift({
-    name: req.body.name,
+    type: req.body.type,
     options: req.body.options,
     time: Date.now(),
   });
