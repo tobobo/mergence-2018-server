@@ -4,7 +4,7 @@ const app = express();
 const jsonParser = require('body-parser').json;
 
 const clients = {};
-const getDefaultClientState = () => ({ lastPoll: undefined, actions: [] });
+const getDefaultClientState = () => ({ lastPollTime: undefined, clientActions: [] });
 const initializeClientIfRequired = (clientId) => {
   if (!clients[clientId]) clients[clientId] = getDefaultClientState();
 };
@@ -20,10 +20,10 @@ app.get('/', (req, res) => {
   res.send('hello world');
 });
 
-app.post('/api/actions', (req, res) => {
+app.post('/api/client_actions', (req, res) => {
   const { body: { clientId } } = req;
   initializeClientIfRequired(clientId);
-  clients[clientId].actions.unshift({
+  clients[clientId].clientActions.unshift({
     type: req.body.type,
     options: req.body.options,
     time: Date.now(),
@@ -31,12 +31,12 @@ app.post('/api/actions', (req, res) => {
   res.status(200).end();
 });
 
-app.get('/api/actions/:clientId', (req, res) => {
+app.get('/api/client_actions/:clientId', (req, res) => {
   const { params: { clientId } } = req;
   initializeClientIfRequired(clientId);
   const clientState = clients[clientId];
-  const clientActions = clientState.actions;
-  clientState.actions = [];
+  const { clientActions } = clientState;
+  clientState.clientActions = [];
   clientState.lastPollTime = Date.now();
   res.json(clientActions);
 });
