@@ -1,10 +1,15 @@
 const express = require('express');
+const _ = require('lodash');
 
 const app = express();
 const jsonParser = require('body-parser').json;
 
 const clients = {};
-const getDefaultClientState = () => ({ lastPollTime: undefined, clientActions: [] });
+const getDefaultClientState = () => ({
+  firstPollTime: Date.now(),
+  lastPollTime: Date.now(),
+  clientActions: [],
+});
 const initializeClientIfRequired = (clientId) => {
   if (!clients[clientId]) clients[clientId] = getDefaultClientState();
 };
@@ -42,14 +47,14 @@ app.get('/api/client_actions/:clientId', (req, res) => {
 });
 
 app.get('/api/clients', (req, res) => {
-  const clientKeys = Object.keys(clients);
+  const clientKeys = _.keys(clients);
   const currentTime = Date.now();
   clientKeys.forEach((key) => {
     if (currentTime - clients[key].lastPollTime > 10000) {
       delete clients[key];
     }
   });
-  res.json(Object.keys(clients));
+  res.json(_.orderBy(_.keys(clients), clientKey => clients[clientKey].firstPollTime, 'asc'));
 });
 
 app.listen(3001, () => console.log('listening'));
