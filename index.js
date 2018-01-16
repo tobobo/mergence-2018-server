@@ -10,7 +10,7 @@ const getDefaultClientState = () => ({
   lastPollTime: Date.now(),
   clientActions: [],
 });
-const initializeClientIfRequired = (clientId) => {
+const initializeClientIfRequired = clientId => {
   if (!clients[clientId]) clients[clientId] = getDefaultClientState();
 };
 
@@ -25,14 +25,24 @@ app.get('/', (req, res) => {
   res.send('hello world');
 });
 
-app.post('/api/client_actions', (req, res) => {
-  const { body: { clientId } } = req;
-  initializeClientIfRequired(clientId);
+function addClientAction(clientId, type, options) {
   clients[clientId].clientActions.unshift({
-    type: req.body.type,
-    options: req.body.options,
+    type,
+    options,
     time: Date.now(),
   });
+}
+
+app.post('/api/client_actions', (req, res) => {
+  const { body: { clientId: clientIdParam, type, options } } = req;
+  if (clientIdParam === '*') {
+    _.forEach(_.keys(clients), (clientId) => {
+      addClientAction(clientId, type, options);
+    });
+  } else {
+    initializeClientIfRequired(clientIdParam);
+    addClientAction(clientIdParam, type, options);
+  }
   res.json({});
 });
 
@@ -49,7 +59,7 @@ app.get('/api/client_actions/:clientId', (req, res) => {
 app.get('/api/clients', (req, res) => {
   const clientKeys = _.keys(clients);
   const currentTime = Date.now();
-  clientKeys.forEach((key) => {
+  clientKeys.forEach(key => {
     if (currentTime - clients[key].lastPollTime > 10000) {
       delete clients[key];
     }
