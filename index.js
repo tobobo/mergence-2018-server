@@ -33,7 +33,7 @@ app.post('/api/client_actions', (req, res) => {
     options: req.body.options,
     time: Date.now(),
   });
-  res.status(200).end();
+  res.json({});
 });
 
 app.get('/api/client_actions/:clientId', (req, res) => {
