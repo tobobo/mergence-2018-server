@@ -34,15 +34,17 @@ function addClientAction(clientId, type, options) {
 }
 
 app.post('/api/client_actions', (req, res) => {
-  const { body: { clientId: clientIdParam, type, options } } = req;
-  if (clientIdParam === '*') {
-    _.forEach(_.keys(clients), (clientId) => {
-      addClientAction(clientId, type, options);
-    });
-  } else {
-    initializeClientIfRequired(clientIdParam);
-    addClientAction(clientIdParam, type, options);
-  }
+  const { body: { clientIds: clientIdsParam, type, options } } = req;
+  _.forEach(clientIdsParam, (clientIdParam) => {
+    if (clientIdParam === '*') {
+      _.forEach(_.keys(clients), (clientId) => {
+        addClientAction(clientId, type, options);
+      });
+    } else {
+      initializeClientIfRequired(clientIdParam);
+      addClientAction(clientIdParam, type, options);
+    }
+  });
   res.json({});
 });
 
